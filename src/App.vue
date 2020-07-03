@@ -1,11 +1,10 @@
 <template>
   <div>
     <h1>ToDoリスト</h1>
-    <form>
-      <input type="radio" value="すべて" />すべて
-      <input type="radio" value="作業中" />作業中
-      <input type="radio" value="完了" />完了
-    </form>
+    <label v-for="item in options" :key="item.status">
+      <input type="radio" v-model="checked" :value="item.value" />
+      {{ item.status }}
+    </label>
     <table>
       <thead>
         <tr>
@@ -14,15 +13,15 @@
           <th>状態</th>
         </tr>
       </thead>
-      <tbody v-for="(todo, index) in todos" :key="todo.id">
+      <tbody v-for="(todo, index) in filterTodos" :key="todo.id">
         <tr>
           <td>{{ index }}</td>
           <td>{{ todo.task }}</td>
           <td>
-            <button>{{ todo.status }}</button>
+            <button @click="changeStatus(todo)">{{ status[todo.status] }}</button>
           </td>
           <td>
-            <button>削除</button>
+            <button @click="deleteTodo(todo)">削除</button>
           </td>
         </tr>
       </tbody>
@@ -39,19 +38,43 @@ export default {
   data() {
     return {
       addTask: "",
-      todos: [
-      ]
+      todos: [],
+      options: [
+        { value: -1, status: 'すべて'},
+        { value: 0, status: '作業中'},
+        { value: 1, status: '完了'},
+      ],
+      checked: -1
     };
   },
+  computed: {
+    filterTodos : function(){
+      return this.todos.filter(function (todo) {
+        return this.checked < 0 ? true : this.checked === todo.status
+      }, this)
+    },
+    status() {
+      return this.options.reduce(function(a, b) {
+        return Object.assign(a, { [b.value]: b.status })
+      }, {})
+    }
+  },
   methods: {
-    addTodo: function(){
-      if(this.addTask){
+    addTodo: function() {
+      if (this.addTask) {
         this.todos.push({
           task: this.addTask,
-          status: "作業中"
+          status: 0
         });
       }
-      this.addTask= "";
+      this.addTask = "";
+    },
+    deleteTodo: function(todo) {
+      let index = this.todos.indexOf(todo);
+      this.todos.splice(index, 1);
+    },
+    changeStatus: function(todo) {
+      todo.status = todo.status ? 0:1
     }
   }
 };
